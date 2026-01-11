@@ -1,6 +1,6 @@
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { SignOptions } from "jsonwebtoken";
-import { TokenPayload } from "../types/auth.types";
+import "dotenv/config";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET as string;
@@ -14,18 +14,18 @@ export const refreshOptions: SignOptions = {
     "7d") as SignOptions["expiresIn"],
 };
 
-export const signAccessToken = (payload: TokenPayload) => {
+export const signAccessToken = (payload: { userId: string }) => {
   return jwt.sign(payload, JWT_SECRET, accessOptions);
 };
 
-export const signRefreshToken = (payload: TokenPayload) => {
+export const signRefreshToken = (payload: {  userId: string;}) => {
   return jwt.sign(payload, REFRESH_SECRET, refreshOptions);
 };
 
-export const verifyRefreshToken = (token: string): TokenPayload => {
-  return jwt.verify(token, REFRESH_SECRET) as TokenPayload;
+export const verifyRefreshToken = (token: string): { userId: string } => {
+  return jwt.verify(token, REFRESH_SECRET) as { userId: string };
 };
 
-export const verifyAccessToken = (token: string): TokenPayload => {
-  return jwt.verify(token, JWT_SECRET) as TokenPayload;
+export const verifyAccessToken = (token: string): { userId: string } => {
+  return jwt.verify(token, JWT_SECRET) as { userId: string };
 };

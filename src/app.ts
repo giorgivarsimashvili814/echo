@@ -1,13 +1,18 @@
 import express from "express";
-import "dotenv/config";
-import authRoutes from "./routes/auth.routes";
 import cookieParser from "cookie-parser";
+import "dotenv/config";
+
+import authRoutes from "./routes/auth.routes";
+import usersRoutes from "./routes/users.routes";
+import postsRoutes from "./routes/posts.routes";
 
 const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
 app.use("/auth", authRoutes);
+app.use("/users", usersRoutes);
+app.use("/posts", postsRoutes);
 
 const PORT = process.env.PORT || 3000;
 

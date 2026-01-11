@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import { UnauthorizedException } from "../utils/exceptions";
 import { verifyAccessToken } from "../lib/jwt";
 import * as jwt from "jsonwebtoken";
 
@@ -7,7 +6,7 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer "))
-      throw new UnauthorizedException("Access denied");
+      return res.status(401).json({ message: "Unauthorized" });
 
     const token = authHeader.split(" ")[1];
 
@@ -17,12 +16,10 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
 
     next();
   } catch (error) {
-    if (error instanceof jwt.TokenExpiredError) {
-      throw new UnauthorizedException("Token expired");
-    }
-    if (error instanceof jwt.JsonWebTokenError) {
-      throw new UnauthorizedException("Invalid token");
-    }
+    if (error instanceof jwt.TokenExpiredError)
+      return res.status(401).json({ message: "Token expired" });
+    if (error instanceof jwt.JsonWebTokenError)
+      return res.status(401).json({ message: "Invalid token" });
     next(error);
   }
 };
