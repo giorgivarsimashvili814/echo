@@ -1,5 +1,6 @@
 import express from "express";
 import cookieParser from "cookie-parser";
+import { errorHandler } from "./middlewares/error.middleware";
 import "dotenv/config";
 
 import authRoutes from "./routes/auth.routes";
@@ -13,6 +14,7 @@ app.use(cookieParser());
 app.use("/auth", authRoutes);
 app.use("/users", usersRoutes);
 app.use("/posts", postsRoutes);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 

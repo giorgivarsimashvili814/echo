@@ -34,12 +34,10 @@ export const loginUser = async (username: string, password: string) => {
 export const refreshTokens = async (oldRefreshToken: string) => {
   const decoded = verifyRefreshToken(oldRefreshToken);
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.user.findUniqueOrThrow({
     where: { id: decoded.userId },
     select: { id: true, username: true },
   });
-
-  if (!user) throw new Error("User not found");
 
   const accessToken = signAccessToken({ userId: user.id });
 
