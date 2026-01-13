@@ -1,6 +1,9 @@
+import { EditUserDto } from "../dtos/users.dto";
 import { prisma } from "../lib/prisma";
 
-export const editUser = async (userId: string, username: string) => {
+export const editUser = async (editUserDto: EditUserDto) => {
+  const { username, userId } = editUserDto;
+
   return prisma.user.update({
     where: { id: userId },
     data: { username },

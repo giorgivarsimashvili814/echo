@@ -1,3 +1,4 @@
+import { AuthDto } from "../dtos/auth.dto";
 import {
   signAccessToken,
   signRefreshToken,
@@ -6,7 +7,9 @@ import {
 import { prisma } from "../lib/prisma";
 import { comparePassword, hashPassword } from "../utils/password.util";
 
-export const registerUser = async (username: string, password: string) => {
+export const registerUser = async (registerDto: AuthDto) => {
+  const { username, password } = registerDto;
+
   const hash = await hashPassword(password);
 
   return prisma.user.create({
@@ -15,7 +18,9 @@ export const registerUser = async (username: string, password: string) => {
   });
 };
 
-export const loginUser = async (username: string, password: string) => {
+export const loginUser = async (loginDto: AuthDto) => {
+  const { username, password } = loginDto;
+
   const user = await prisma.user.findUniqueOrThrow({ where: { username } });
 
   if (!user || !(await comparePassword(password, user.password)))

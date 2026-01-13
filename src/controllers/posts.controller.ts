@@ -1,34 +1,35 @@
 import { Request, Response } from "express";
-import * as postsService from "../services/posts.service";
 import { createPostSchema, editPostSchema } from "../schemas/posts.schema";
+import * as postsService from "../services/posts.service";
 
 export const createPost = async (req: Request, res: Response) => {
-  const { title, body } = createPostSchema.parse(req.body);
-  const userId = req.userId as string;
+  const authorId = req.userId as string;
 
-  const post = await postsService.createPost(userId, title, body);
-  return res.status(201).json(post);
+  const { title, body } = createPostSchema.parse(req.body);
+
+  const post = await postsService.createPost({ title, body, authorId });
+
+  return res.status(201).json({ message: "Created successfully", post });
 };
 
 export const deletePost = async (req: Request, res: Response) => {
-  const userId = req.userId as string;
+  const authorId = req.userId as string;
   const postId = req.params.postId as string;
 
-  const deletedPost = await postsService.deletePost(postId, userId);
+  const deletedPost = await postsService.deletePost(postId, authorId);
 
-  return res
-    .status(200)
-    .json({ message: "Deleted successfully", post: deletedPost });
+  return res.status(200).json({ message: "Deleted successfully", deletedPost });
 };
 
 export const editPost = async (req: Request, res: Response) => {
-  const userId = req.userId as string;
+  const authorId = req.userId as string;
   const postId = req.params.postId as string;
+
   const { body } = editPostSchema.parse(req.body);
 
-  const updatedPost = await postsService.editPost(postId, userId, body);
+  const editedPost = await postsService.editPost({ body, authorId, postId });
 
-  return res.status(200).json({ message: "Updated successfully", updatedPost });
+  return res.status(200).json({ message: "Edited successfully", editedPost });
 };
 
 export const getPostById = async (req: Request, res: Response) => {
@@ -40,9 +41,9 @@ export const getPostById = async (req: Request, res: Response) => {
 };
 
 export const getPostsByAuthorId = async (req: Request, res: Response) => {
-  const userId = req.params.userId as string;
+  const authorId = req.params.authorId as string;
 
-  const posts = await postsService.getPostsByUserId(userId);
+  const posts = await postsService.getPostsByAuthorId(authorId);
 
   return res.status(200).json({ message: "Fetched successfully", posts });
 };

@@ -26,7 +26,10 @@ export const errorHandler = (
     const errors = Object.values(properties).flatMap(
       (prop: any) => prop.errors
     );
-    return res.status(400).json(errors);
+    return res.status(400).json({
+      message: "Validation Error",
+      errors: errors,
+    });
   }
 
   if (

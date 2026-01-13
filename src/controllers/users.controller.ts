@@ -1,19 +1,19 @@
 import { Request, Response } from "express";
-import * as usersService from "../services/users.service";
 import { editUserSchema } from "../schemas/users.schema";
+import * as usersService from "../services/users.service";
 
 export const editUser = async (req: Request, res: Response) => {
-  const { username } = editUserSchema.parse(req.body);
-
   const userId = req.userId as string;
 
-  const updatedUser = await usersService.editUser(userId, username);
+  const { username } = editUserSchema.parse(req.body);
 
-  return res.status(200).json({ message: "Updated successfully", updatedUser });
+  const editedUser = await usersService.editUser({ username, userId });
+
+  return res.status(200).json({ message: "Edited successfully", editedUser });
 };
 
 export const deleteUser = async (req: Request, res: Response) => {
-  const userId = req.userId!;
+  const userId = req.userId as string;
 
   const deletedUser = await usersService.deleteUser(userId);
 

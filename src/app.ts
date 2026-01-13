@@ -6,14 +6,18 @@ import "dotenv/config";
 import authRoutes from "./routes/auth.routes";
 import usersRoutes from "./routes/users.routes";
 import postsRoutes from "./routes/posts.routes";
+import commentsRoutes from "./routes/comments.routes";
 
 const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
+
 app.use("/auth", authRoutes);
 app.use("/users", usersRoutes);
 app.use("/posts", postsRoutes);
+app.use("/comments", commentsRoutes);
+
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;

@@ -1,14 +1,11 @@
 import { Request, Response } from "express";
-import * as authService from "../services/auth.service";
-import { Prisma } from "../generated/prisma/client";
-import jwt from "jsonwebtoken";
 import { authSchema } from "../schemas/auth.schema";
-import z, { ZodError } from "zod";
+import * as authService from "../services/auth.service";
 
 export const register = async (req: Request, res: Response) => {
   const { username, password } = authSchema.parse(req.body);
 
-  const user = await authService.registerUser(username, password);
+  const user = await authService.registerUser({ username, password });
 
   return res.status(201).json({ message: "Registered successfully", user });
 };
@@ -16,10 +13,10 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   const { username, password } = authSchema.parse(req.body);
 
-  const { user, accessToken, refreshToken } = await authService.loginUser(
+  const { user, accessToken, refreshToken } = await authService.loginUser({
     username,
-    password
-  );
+    password,
+  });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,

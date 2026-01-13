@@ -1,25 +1,17 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "../lib/jwt";
-import * as jwt from "jsonwebtoken";
 
 export const protect = (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer "))
-      return res.status(401).json({ message: "Unauthorized" });
+  const authHeader = req.headers.authorization;
 
-    const token = authHeader.split(" ")[1];
+  if (!authHeader || !authHeader.startsWith("Bearer "))
+    return res.status(401).json({ message: "Unauthorized" });
 
-    const decoded = verifyAccessToken(token);
+  const token = authHeader.split(" ")[1];
 
-    req.userId = decoded.userId;
+  const decoded = verifyAccessToken(token);
 
-    next();
-  } catch (error) {
-    if (error instanceof jwt.TokenExpiredError)
-      return res.status(401).json({ message: "Token expired" });
-    if (error instanceof jwt.JsonWebTokenError)
-      return res.status(401).json({ message: "Invalid token" });
-    next(error);
-  }
+  req.userId = decoded.userId;
+
+  next();
 };
