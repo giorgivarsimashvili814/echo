@@ -27,3 +27,11 @@ export const getUserById = async (req: Request, res: Response) => {
 
   return res.status(200).json({ message: "Fetched successfully", user });
 };
+
+export const wipeUser = async (req: Request, res: Response) => {
+  const userId = req.userId as string;
+
+  const deletedUser = await usersService.wipeUser(userId);
+
+  return res.status(200).json({ message: "Deleted successfully", deletedUser });
+};

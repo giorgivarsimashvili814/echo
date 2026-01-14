@@ -24,3 +24,19 @@ export const getUserById = async (userId: string) => {
     select: { id: true, username: true },
   });
 };
+
+export const wipeUser = async (userId: string) => {
+  return await prisma.$transaction(async (tx) => {
+    await tx.comment.deleteMany({
+      where: { authorId: userId },
+    });
+
+    await tx.post.deleteMany({
+      where: { authorId: userId },
+    });
+
+    return await tx.user.delete({
+      where: { id: userId },
+    });
+  });
+};
