@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 export async function getCurrentUser(): Promise<User | null> {
   try {
     const cookieStore = await cookies();
+    console.log('cookies:', cookieStore.toString());
 
     const res = await fetch("${process.env.NEXT_PUBLIC_API_URL}/auth/current-user", {
       headers: {
