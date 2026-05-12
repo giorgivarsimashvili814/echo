@@ -33,7 +33,7 @@ export default function PostCard({ post }: { post: Post }) {
       setUserVote(type);
     }
 
-    const res = await fetch(`http://localhost:3001/posts/${post.id}/vote`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${post.id}/vote`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },

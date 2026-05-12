@@ -6,7 +6,7 @@ export async function getUserInfo(userId: string): Promise<UserInfo | null> {
   try {
     const cookieStore = await cookies();
 
-    const res = await fetch(`http://localhost:3001/users/${userId}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`, {
       headers: { cookie: cookieStore.toString() },
     });
 

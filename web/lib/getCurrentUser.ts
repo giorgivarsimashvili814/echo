@@ -5,7 +5,7 @@ export async function getCurrentUser(): Promise<User | null> {
   try {
     const cookieStore = await cookies();
 
-    const res = await fetch("http://localhost:3001/auth/current-user", {
+    const res = await fetch("${process.env.NEXT_PUBLIC_API_URL}/auth/current-user", {
       headers: {
         cookie: cookieStore.toString(),
       },
