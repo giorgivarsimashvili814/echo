@@ -8,7 +8,7 @@ export default function HomeLayout({
   return (
     <>
       <Navbar />
-      <div className="flex w-full min-[1920px]:max-w-366 px-3 py-4">
+      <div className="flex w-full min-[1920px]:max-w-366 px-3 py-4 m-auto">
         <main className="w-full max-w-170 m-auto flex flex-col gap-5">{children}</main>
       </div>
     </>
