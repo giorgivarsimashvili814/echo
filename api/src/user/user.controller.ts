@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from 'src/guards/auth.guard';
-import { SkipThrottle } from '@nestjs/throttler';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { CurrentUser } from 'src/decorators/user.decorator';
 import type { RequestWithOptionalUser, SessionUser } from 'src/types';
 import { OptionalAuthGuard } from 'src/guards/optional-auth.guard';
@@ -19,6 +19,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @UseGuards(AuthGuard)
+  @Throttle({ short: { limit: 30, ttl: 60000 } })
   @Post(':userId/follow')
   follow(@CurrentUser() user: SessionUser, @Param('userId') userId: string) {
     return this.userService.follow(user.id, userId);

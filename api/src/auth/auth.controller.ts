@@ -60,9 +60,11 @@ export class AuthController {
     }
 
     res.clearCookie('sessionId', {
-      domain: '.orbit-dev.cv',
-      secure: true,
-      sameSite: 'none',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+      domain:
+        process.env.NODE_ENV === 'production' ? '.orbit-dev.cv' : undefined,
     });
 
     return { message: 'success' };
@@ -78,9 +80,10 @@ export class AuthController {
   private setSessionCookie(res: Response, sessionId: string) {
     res.cookie('sessionId', sessionId, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      domain: '.orbit-dev.cv',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+      domain:
+        process.env.NODE_ENV === 'production' ? '.orbit-dev.cv' : undefined,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }

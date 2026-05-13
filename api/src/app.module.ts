@@ -19,7 +19,6 @@ import { UserModule } from './user/user.module';
         ttl: 60000,
         limit: 5,
       },
-      { name: 'vote', ttl: 60000, limit: 30 },
     ]),
     PostModule,
     CommentModule,

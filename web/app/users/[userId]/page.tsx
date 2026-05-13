@@ -1,3 +1,5 @@
+import UserProfile from "@/components/UserProfile";
+import { getCurrentUser } from "@/lib/getCurrentUser";
 import { getUserInfo } from "@/lib/getUserInfo";
 
 interface Props {
@@ -7,14 +9,8 @@ interface Props {
 export default async function page({ params }: Props) {
   const { userId } = await params;
   const user = await getUserInfo(userId);
+  const currentUser = await getCurrentUser();
   if (!user) return <div>Something went wrong</div>;
-  return (
-    <>
-      <p>username: {user.username}</p>
-      <p>followers: {user.followerCount}</p>
-      <p>follwing: {user.followingCount}</p>
-      <p>follows me: {user.followsViewer.toString()}</p>
-      <p>is followed by me: {user.viewerFollows.toString()}</p>
-    </>
-  );
+
+  return <UserProfile user={user} currentUser={currentUser} />;
 }

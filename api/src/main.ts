@@ -9,7 +9,10 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors({
-    origin: 'https://orbit-dev.cv',
+    origin:
+      process.env.NODE_ENV === 'production'
+        ? 'https://orbit-dev.cv'
+        : 'http://localhost:3000',
     credentials: true,
   });
 
