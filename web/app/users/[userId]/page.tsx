@@ -10,6 +10,7 @@ export default async function page({ params }: Props) {
   const { userId } = await params;
   const user = await getUserInfo(userId);
   const currentUser = await getCurrentUser();
+
   if (!user) return <div>Something went wrong</div>;
 
   return <UserProfile user={user} currentUser={currentUser} />;
