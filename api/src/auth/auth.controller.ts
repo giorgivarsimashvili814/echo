@@ -59,7 +59,11 @@ export class AuthController {
       await this.authService.deleteSession(sessionId);
     }
 
-    res.clearCookie('sessionId');
+    res.clearCookie('sessionId', {
+      domain: '.orbit-dev.cv',
+      secure: true,
+      sameSite: 'none',
+    });
 
     return { message: 'success' };
   }
