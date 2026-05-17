@@ -26,7 +26,13 @@ export async function proxy(request: NextRequest) {
 
     if (!res.ok) {
       const response = NextResponse.redirect(new URL("/login", request.url));
-      response.cookies.delete("sessionId");
+      response.cookies.set("sessionId", "", {
+        expires: new Date(0),
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        domain: ".orbit-dev.cv",
+      });
       return response;
     }
   }
