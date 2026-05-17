@@ -1,6 +1,9 @@
+import PostsFeed from "@/components/PostsFeed";
 import UserProfile from "@/components/UserProfile";
 import { getCurrentUser } from "@/lib/getCurrentUser";
+import { getPosts } from "@/lib/getPosts";
 import { getUserInfo } from "@/lib/getUserInfo";
+import { notFound } from "next/navigation";
 
 interface Props {
   params: Promise<{ userId: string }>;
@@ -11,7 +14,14 @@ export default async function page({ params }: Props) {
   const user = await getUserInfo(userId);
   const currentUser = await getCurrentUser();
 
-  if (!user) return <div>Something went wrong</div>;
+  if (!user) notFound();
 
-  return <UserProfile user={user} currentUser={currentUser} />;
+  const { posts, nextCursor } = await getPosts(undefined, userId);
+
+  return (
+    <>
+      <UserProfile user={user} currentUser={currentUser} />
+      <PostsFeed initialPosts={posts} initialCursor={nextCursor} userId={userId}/>
+    </>
+  );
 }

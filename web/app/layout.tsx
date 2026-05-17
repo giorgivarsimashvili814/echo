@@ -3,6 +3,7 @@ import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
+import QueryProvider from "@/components/QueryProvider";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -19,7 +20,7 @@ export default function RootLayout({
   return (
     <html className={cn("font-sans", geist.variable)}>
       <body className="min-h-screen bg-gray-100">
-        {children}
+        <QueryProvider>{children}</QueryProvider>
         <Toaster position="bottom-right" />
       </body>
     </html>

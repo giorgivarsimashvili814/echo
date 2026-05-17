@@ -18,5 +18,5 @@ export type VoteType = "UPVOTE" | "DOWNVOTE" | null;
 
 export interface PostsResponse {
   posts: Post[];
-  nextCursor?: string;
+  nextCursor: string | null;
 }

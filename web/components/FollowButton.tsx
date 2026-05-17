@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { UserInfo } from "@/types/user";
+import { toast } from "sonner";
+import { followUser } from "@/lib/followUser";
 
 export default function FollowButton({
   user,
@@ -18,25 +20,20 @@ export default function FollowButton({
   const handleFollow = async () => {
     setIsLoading(true);
     const newViewerFollows = !viewerFollows;
-    const prev = { viewerFollows, followsViewer };
+    const prev = viewerFollows;
 
     setViewerFollows(newViewerFollows);
     onFollowChange(newViewerFollows);
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/users/${user.id}/follow`,
-      {
-        method: "POST",
-        credentials: "include",
-      },
-    );
-
-    if (!res.ok) {
-      setViewerFollows(prev.viewerFollows);
-      onFollowChange(prev.viewerFollows);
+    try {
+      await followUser(user.id);
+    } catch {
+      setViewerFollows(prev);
+      onFollowChange(prev);
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const getLabel = () => {
