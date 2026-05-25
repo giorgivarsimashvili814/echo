@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { ArrowBigUp, ArrowBigDown } from "lucide-react";
-import { votePost } from "@/lib/votePost";
 import { toast } from "sonner";
 import { InfiniteData, useQueryClient } from "@tanstack/react-query";
-import { PostsResponse } from "@/types/post";
+import { voteComment } from "@/lib/voteComment";
+import { CommentsResponse } from "@/types/comment";
 import { Button } from "./ui/button";
 
-interface PostVoteButtonProps {
-  postId: string;
+interface CommentVoteButtonProps {
+  commentId: string;
   initialUpvotes: number;
   initialDownvotes: number;
   initialUserVote: "UPVOTE" | "DOWNVOTE" | null;
@@ -21,12 +21,12 @@ const numberFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
 });
 
-export default function PostVoteButton({
-  postId,
+export default function CommentVoteButton({
+  commentId,
   initialUpvotes,
   initialDownvotes,
   initialUserVote,
-}: PostVoteButtonProps) {
+}: CommentVoteButtonProps) {
   const [upvotes, setUpvotes] = useState(initialUpvotes);
   const [downvotes, setDownvotes] = useState(initialDownvotes);
   const [userVote, setUserVote] = useState(initialUserVote);
@@ -49,21 +49,24 @@ export default function PostVoteButton({
     }
 
     try {
-      const updatedPost = await votePost(postId, type);
-      setUpvotes(updatedPost.upvotes);
-      setDownvotes(updatedPost.downvotes);
-      setUserVote(updatedPost.userVote);
-      queryClient.setQueriesData<InfiniteData<PostsResponse>>(
-        { queryKey: ["posts"] },
+      const updatedComment = await voteComment(commentId, type);
+
+      setUpvotes(updatedComment.upvotes);
+      setDownvotes(updatedComment.downvotes);
+      setUserVote(updatedComment.userVote);
+
+      queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
+        { queryKey: ["comments"] },
         (old) => {
           if (!old) return old;
           return {
             ...old,
             pages: old.pages.map((page) => ({
               ...page,
-              posts: page.posts.map((p) =>
-                p.id === postId ? { ...p, ...updatedPost } : p,
-              ),
+              comments:
+                page.comments.map((c) =>
+                  c.id === commentId ? { ...c, ...updatedComment } : c,
+                ) ?? [],
             })),
           };
         },
@@ -81,10 +84,10 @@ export default function PostVoteButton({
       <Button
         variant="ghost"
         onClick={() => handleVote("UPVOTE")}
-        className="flex gap-2 px-2 py-1 rounded-full hover:bg-gray-100 cursor-pointer items-center"
+        className="flex gap-1 px-1 py-0.5 rounded-full hover:bg-gray-100 cursor-pointer items-center"
       >
         <ArrowBigUp
-          size={18}
+          size={14}
           className={`transition-all ${userVote === "UPVOTE" && "fill-orange-500 text-orange-500"}`}
         />
         <span className="text-sm font-medium">
@@ -94,10 +97,10 @@ export default function PostVoteButton({
       <Button
         variant="ghost"
         onClick={() => handleVote("DOWNVOTE")}
-        className="flex gap-2 px-2 py-1 rounded-full hover:bg-gray-100 cursor-pointer items-center"
+        className="flex gap-1 px-1 py-0.5 rounded-full hover:bg-gray-100 cursor-pointer items-center"
       >
         <ArrowBigDown
-          size={18}
+          size={14}
           className={`transition-all ${userVote === "DOWNVOTE" && "fill-blue-500 text-blue-500"}`}
         />
         <span className="text-sm font-medium">

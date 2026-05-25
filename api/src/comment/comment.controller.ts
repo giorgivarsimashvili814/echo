@@ -35,7 +35,13 @@ export class CommentController {
     @Param('postId') postId: string,
     @Req() req: RequestWithOptionalUser,
     @Query('cursor') cursor?: string,
+    @Query('take') take?: string,
   ) {
-    return this.commentService.findAll(postId, req.user?.id, cursor);
+    return this.commentService.findAll(
+      postId,
+      req.user?.id,
+      cursor,
+      Math.min(parseInt(take ?? '5') || 5, 20),
+    );
   }
 }

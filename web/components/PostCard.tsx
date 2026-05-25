@@ -3,14 +3,19 @@ import { formatDistanceToNow } from "date-fns";
 import { MessageCircle } from "lucide-react";
 import Link from "next/link";
 import PostVoteButton from "./PostVoteButton";
+import { useState } from "react";
+import { Button } from "./ui/button";
+import CommentSection from "./CommentSection";
 
-const numberFormatter = new Intl.NumberFormat("en-US", {
+export const numberFormatter = new Intl.NumberFormat("en-US", {
   notation: "compact",
   compactDisplay: "short",
   maximumFractionDigits: 1,
 });
 
-export default function PostCard({ post }: { post: Post }) {
+export function PostCard({ post }: { post: Post }) {
+  const [toggleComments, setToggleComments] = useState(false);
+
   return (
     <div className="rounded-lg p-2 flex flex-col gap-2 bg-white shadow w-full">
       <Link
@@ -33,13 +38,20 @@ export default function PostCard({ post }: { post: Post }) {
           initialUserVote={post.userVote}
           postId={post.id}
         />
-        <div className="flex gap-2 px-2 py-1 rounded-full hover:bg-gray-100 cursor-pointer items-center">
+        <Button
+          variant="ghost"
+          className="flex gap-2 px-2 py-1 rounded-full"
+          onClick={() => {
+            setToggleComments((prev) => !prev);
+          }}
+        >
           <MessageCircle size={18} />
           <span className="text-sm font-medium">
             {numberFormatter.format(post.commentCount)}
           </span>
-        </div>
+        </Button>
       </div>
+      {toggleComments && <CommentSection postId={post.id} />}
     </div>
   );
 }

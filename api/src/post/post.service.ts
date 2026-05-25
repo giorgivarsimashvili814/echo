@@ -48,7 +48,7 @@ export class PostService {
     userId?: string,
     filterUserId?: string,
     cursor?: string,
-    take = 10,
+    take = 5,
   ) {
     const posts = await this.prisma.post.findMany({
       where: {

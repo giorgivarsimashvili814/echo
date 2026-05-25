@@ -17,6 +17,7 @@ import type { RequestWithOptionalUser, SessionUser } from 'src/types';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { VoteDto } from 'src/post/dto/vote.dto';
 import { OptionalAuthGuard } from 'src/guards/optional-auth.guard';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('comments')
 export class CommentActionsController {
@@ -52,6 +53,7 @@ export class CommentActionsController {
   }
 
   @UseGuards(AuthGuard)
+  @Throttle({ short: { limit: 30, ttl: 60000 } })
   @Post(':commentId/vote')
   vote(
     @CurrentUser() user: SessionUser,

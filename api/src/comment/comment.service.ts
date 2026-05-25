@@ -65,7 +65,7 @@ export class CommentService {
     };
   }
 
-  async findAll(postId: string, userId?: string, cursor?: string, take = 10) {
+  async findAll(postId: string, userId?: string, cursor?: string, take = 5) {
     const post = await this.prisma.post.findUnique({
       where: { id: postId },
       select: { id: true },

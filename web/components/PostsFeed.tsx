@@ -1,7 +1,7 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import PostCard from "@/components/PostCard";
+import { PostCard } from "@/components/PostCard";
 import { useInView } from "react-intersection-observer";
 import { Post } from "@/types/post";
 import { getPostsClient } from "@/lib/getPostsClient";
@@ -46,7 +46,7 @@ export default function PostsFeed({
       ))}
       {hasNextPage && (
         <>
-          <PostSkeleton ref={ref} />
+          <PostSkeleton />
           <PostSkeleton ref={ref} />
         </>
       )}
