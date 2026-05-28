@@ -14,6 +14,7 @@ import { AuthGuard } from 'src/guards/auth.guard';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import type { RequestWithOptionalUser, SessionUser } from 'src/types';
 import { OptionalAuthGuard } from 'src/guards/optional-auth.guard';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @Controller('posts/:postId/comments')
 export class CommentController {
@@ -30,6 +31,7 @@ export class CommentController {
   }
 
   @UseGuards(OptionalAuthGuard)
+  @SkipThrottle({ short: true })
   @Get()
   findAll(
     @Param('postId') postId: string,

@@ -1,5 +1,3 @@
-// import { PostsResponse } from "@/types/post";
-
 export async function getComments(postId: string, cursor: string | null) {
   const url = new URL(
     `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/comments`,

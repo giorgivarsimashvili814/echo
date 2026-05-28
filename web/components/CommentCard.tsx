@@ -1,10 +1,13 @@
 import { formatDistanceToNow, FormatDistanceToken, Locale } from "date-fns";
 import Link from "next/link";
 import { Comment } from "@/types/comment";
-import CommentVoteButton from "./CommentVoteButton";
 import { Button } from "./ui/button";
 import { MessageCircle } from "lucide-react";
 import { numberFormatter } from "./PostCard";
+import VoteButton from "./VoteButton";
+import { useState } from "react";
+import ReplySection from "./ReplySection";
+import CreateComment from "./CreateComment";
 
 const shortLocale: Pick<Locale, "formatDistance"> = {
   formatDistance: (token: FormatDistanceToken, count: number) => {
@@ -29,15 +32,28 @@ const shortLocale: Pick<Locale, "formatDistance"> = {
   },
 };
 
-export default function CommentCard({ comment }: { comment: Comment }) {
+export default function CommentCard({
+  comment,
+  postId,
+  parentId,
+  isReply = false,
+}: {
+  comment: Comment;
+  postId: string;
+  parentId?: string;
+  isReply?: boolean;
+}) {
+  const [showReplies, setShowReplies] = useState(false);
+  const [showReplyInput, setShowReplyInput] = useState(false);
+
   return (
     <div className="flex gap-1 w-full">
       <Link
         href={`/users/${comment.author.id}`}
         className="bg-black h-8 w-8 rounded-full shrink-0"
       ></Link>
-      <div>
-        <div className="bg-gray-100 px-2 py-1 rounded-lg">
+      <div className="w-full">
+        <div className="bg-gray-100 px-2 py-1 rounded-lg w-fit">
           <Link
             href={`/users/${comment.author.id}`}
             className="font-medium text-sm"
@@ -53,22 +69,41 @@ export default function CommentCard({ comment }: { comment: Comment }) {
               locale: shortLocale,
             })}
           </span>
-          <CommentVoteButton
-            initialDownvotes={comment.downvotes}
-            initialUpvotes={comment.upvotes}
-            initialUserVote={comment.userVote}
-            commentId={comment.id}
+          <VoteButton
+            upvotes={comment.upvotes}
+            downvotes={comment.downvotes}
+            userVote={comment.userVote}
+            target={{ type: "comment", id: comment.id, postId: postId }}
+            size="sm"
           />
           <Button
             variant="ghost"
             className="flex gap-1 px-1 py-0.5 rounded-full"
+            onClick={() => {
+              if (isReply) {
+                setShowReplyInput((prev) => !prev);
+              } else {
+                setShowReplies((prev) => !prev);
+              }
+            }}
           >
-            <MessageCircle size={14} />
-            <span className="text-sm font-medium">
-              {numberFormatter.format(comment.replyCount)}
-            </span>
+            {isReply ? <p>Reply</p> : <MessageCircle size={14} />}
+
+            {!isReply && (
+              <span className="text-sm font-medium">
+                {numberFormatter.format(comment.replyCount)}
+              </span>
+            )}
           </Button>
         </div>
+        {showReplies && !isReply && (
+          <div className="ml-2">
+            <ReplySection postId={postId} parentId={comment.id} />
+          </div>
+        )}
+        {showReplyInput && isReply && parentId && (
+          <CreateComment postId={postId} parentId={parentId} />
+        )}
       </div>
     </div>
   );

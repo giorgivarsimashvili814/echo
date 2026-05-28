@@ -1,6 +1,7 @@
 export async function createComment(
   content: string,
   postId: string,
+  parentId?: string,
 ) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/posts/${postId}/comments`,
@@ -8,7 +9,7 @@ export async function createComment(
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, ...(parentId && { parentId }) }),
     },
   );
 

@@ -22,7 +22,7 @@ export default function PostsFeed({
       queryFn: ({ pageParam }) => getPostsClient(pageParam, userId),
       getNextPageParam: (lastPage) => lastPage.nextCursor,
       initialPageParam: null as string | null,
-      staleTime: 0,
+      staleTime: 1000 * 60,
       initialData: {
         pages: [{ posts: initialPosts, nextCursor: initialCursor }],
         pageParams: [null],

@@ -6,13 +6,14 @@ import { toast } from "sonner";
 import { createPost } from "@/lib/createPost";
 import { Textarea } from "@/components/ui/textarea";
 import { InfiniteData, useQueryClient } from "@tanstack/react-query";
-import { PostsResponse } from "@/types/post";
+import { Post, PostsResponse } from "@/types/post";
+import { User } from "@/types/user";
 
 type CreatePostForm = {
   content: string;
 };
 
-export default function CreatePost() {
+export default function CreatePost({ currentUser }: { currentUser: User }) {
   const {
     register,
     handleSubmit,
@@ -23,9 +24,42 @@ export default function CreatePost() {
   const queryClient = useQueryClient();
 
   const onSubmit = async (data: CreatePostForm) => {
+    const tempId = crypto.randomUUID();
+
+    const optimisticPost: Post = {
+      id: tempId,
+      content: data.content,
+      createdAt: new Date().toISOString(),
+      upvotes: 0,
+      downvotes: 0,
+      userVote: null,
+      commentCount: 0,
+      author: {
+        id: currentUser.id,
+        username: currentUser.username,
+      },
+    };
+
+    queryClient.setQueriesData<InfiniteData<PostsResponse>>(
+      { queryKey: ["posts"] },
+      (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page, index) =>
+            index === 0
+              ? { ...page, posts: [optimisticPost, ...page.posts] }
+              : page,
+          ),
+        };
+      },
+    );
+
+    reset();
+
     try {
       const newPost = await createPost(data.content);
-      reset();
+
       queryClient.setQueriesData<InfiniteData<PostsResponse>>(
         { queryKey: ["posts"] },
         (old) => {
@@ -33,12 +67,32 @@ export default function CreatePost() {
           return {
             ...old,
             pages: old.pages.map((page, index) =>
-              index === 0 ? { ...page, posts: [newPost, ...page.posts] } : page,
+              index === 0
+                ? {
+                    ...page,
+                    posts: page.posts.map((p) =>
+                      p.id === tempId ? newPost : p,
+                    ),
+                  }
+                : page,
             ),
           };
         },
       );
     } catch {
+      queryClient.setQueriesData<InfiniteData<PostsResponse>>(
+        { queryKey: ["posts"] },
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              posts: page.posts.filter((p) => p.id !== tempId),
+            })),
+          };
+        },
+      );
       toast.error("Something went wrong");
     }
   };

@@ -17,13 +17,14 @@ import type { RequestWithOptionalUser, SessionUser } from 'src/types';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { VoteDto } from 'src/post/dto/vote.dto';
 import { OptionalAuthGuard } from 'src/guards/optional-auth.guard';
-import { Throttle } from '@nestjs/throttler';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 
 @Controller('comments')
 export class CommentActionsController {
   constructor(private readonly commentService: CommentService) {}
 
   @UseGuards(OptionalAuthGuard)
+  @SkipThrottle({ short: true })
   @Get(':commentId/replies')
   findReplies(
     @Param('commentId') commentId: string,

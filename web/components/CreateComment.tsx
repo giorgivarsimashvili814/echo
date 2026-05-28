@@ -4,16 +4,24 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
-import { InfiniteData, useQueryClient } from "@tanstack/react-query";
-import { CommentsResponse } from "@/types/comment";
+import { InfiniteData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Comment, CommentsResponse } from "@/types/comment";
 import { createComment } from "@/lib/createComment";
+import { PostsResponse } from "@/types/post";
+import { getCurrentUserClient } from "@/lib/getCurrentUserClient";
 
 type CreateCommentForm = {
   content: string;
   parentId?: string;
 };
 
-export default function CreateComment({ postId }: { postId: string }) {
+export default function CreateComment({
+  postId,
+  parentId,
+}: {
+  postId: string;
+  parentId?: string;
+}) {
   const {
     register,
     handleSubmit,
@@ -21,27 +29,117 @@ export default function CreateComment({ postId }: { postId: string }) {
     formState: { isSubmitting, errors },
   } = useForm<CreateCommentForm>();
 
+  const { data: currentUser } = useQuery({
+    queryKey: ["me"],
+    queryFn: getCurrentUserClient,
+    staleTime: Infinity,
+  });
+
   const queryClient = useQueryClient();
 
   const onSubmit = async (data: CreateCommentForm) => {
-    try {
-      const newComment = await createComment(data.content, postId);
-      reset();
+    if (!currentUser) return;
+    const tempId = crypto.randomUUID();
+
+    const optimisticComment: Comment = {
+      id: tempId,
+      content: data.content,
+      createdAt: new Date().toISOString(),
+      upvotes: 0,
+      downvotes: 0,
+      userVote: null,
+      replyCount: 0,
+      author: { id: currentUser.id, username: currentUser.username },
+    };
+
+    queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
+      { queryKey: ["comments", postId, parentId ?? null].filter(Boolean) },
+      (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page, index) =>
+            index === 0
+              ? { ...page, comments: [optimisticComment, ...page.comments] }
+              : page,
+          ),
+        };
+      },
+    );
+
+    if (!parentId) {
+      queryClient.setQueriesData<InfiniteData<PostsResponse>>(
+        { queryKey: ["posts"] },
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              posts: page.posts.map((p) =>
+                p.id === postId
+                  ? { ...p, commentCount: p.commentCount + 1 }
+                  : p,
+              ),
+            })),
+          };
+        },
+      );
+    } else {
       queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
-        { queryKey: ["comments"] },
+        { queryKey: ["comments", postId] },
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              comments: page.comments.map((c) =>
+                c.id === parentId ? { ...c, replyCount: c.replyCount + 1 } : c,
+              ),
+            })),
+          };
+        },
+      );
+    }
+
+    reset();
+
+    try {
+      const newComment = await createComment(data.content, postId, parentId);
+      queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
+        { queryKey: ["comments", postId, parentId ?? null].filter(Boolean) },
         (old) => {
           if (!old) return old;
           return {
             ...old,
             pages: old.pages.map((page, index) =>
               index === 0
-                ? { ...page, comments: [newComment, ...page.comments] }
+                ? {
+                    ...page,
+                    comments: page.comments.map((c) =>
+                      c.id === tempId ? newComment : c,
+                    ),
+                  }
                 : page,
             ),
           };
         },
       );
     } catch {
+      queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
+        { queryKey: ["comments", postId, parentId ?? null].filter(Boolean) },
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              comments: page.comments.filter((c) => c.id !== tempId),
+            })),
+          };
+        },
+      );
       toast.error("Something went wrong");
     }
   };
