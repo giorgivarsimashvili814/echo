@@ -53,7 +53,7 @@ export default function CommentCard({
         className="bg-black h-8 w-8 rounded-full shrink-0"
       ></Link>
       <div className="w-full">
-        <div className="bg-gray-100 px-2 py-1 rounded-lg w-fit">
+        <div className="bg-gray-100 px-2 py-1 rounded-xl w-fit">
           <Link
             href={`/users/${comment.author.id}`}
             className="font-medium text-sm"
@@ -98,9 +98,14 @@ export default function CommentCard({
         </div>
         {showReplies && !isReply && (
           <div className="ml-2">
-            <ReplySection postId={postId} parentId={comment.id} />
+            <ReplySection
+              postId={postId}
+              parentId={comment.id}
+              replyCount={comment.replyCount}
+            />
           </div>
         )}
+
         {showReplyInput && isReply && parentId && (
           <CreateComment postId={postId} parentId={parentId} />
         )}

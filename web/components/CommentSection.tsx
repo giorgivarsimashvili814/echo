@@ -16,7 +16,7 @@ export default function CommentSection({
 }) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
     useInfiniteQuery({
-      queryKey: ["comments", postId],
+      queryKey: ["comments", postId, null],
       queryFn: ({ pageParam }) => getComments(postId, pageParam),
       getNextPageParam: (lastPage) => lastPage.nextCursor,
       initialPageParam: null as string | null,

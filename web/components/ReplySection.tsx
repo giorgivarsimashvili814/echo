@@ -8,11 +8,13 @@ import { getReplies } from "@/lib/getReplies";
 export default function ReplySection({
   postId,
   parentId,
+  replyCount,
 }: {
   postId: string;
   parentId: string;
+  replyCount: number;
 }) {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
     useInfiniteQuery({
       queryKey: ["comments", postId, parentId],
       queryFn: ({ pageParam }) => getReplies(parentId, pageParam),
@@ -31,15 +33,23 @@ export default function ReplySection({
 
   return (
     <div className="flex flex-col">
-      {replies.map((reply) => (
-        <CommentCard
-          key={reply.id}
-          comment={reply}
-          postId={postId}
-          isReply
-          parentId={parentId}
-        />
-      ))}
+      {isPending && replyCount > 0 ? (
+        <>
+          <CommentSkeleton />
+          <CommentSkeleton />
+        </>
+      ) : (
+        replies.map((reply) => (
+          <CommentCard
+            key={reply.id}
+            comment={reply}
+            postId={postId}
+            isReply
+            parentId={parentId}
+          />
+        ))
+      )}
+
       {hasNextPage && <CommentSkeleton ref={ref} />}
       <CreateComment postId={postId} parentId={parentId} />
     </div>

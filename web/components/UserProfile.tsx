@@ -4,12 +4,13 @@ import { User, UserInfo } from "@/types/user";
 import { Dot } from "lucide-react";
 import FollowButton from "./FollowButton";
 import { useState } from "react";
+import Link from "next/link";
 
 export default function UserProfile({
   user,
   currentUser,
 }: {
-  user: UserInfo | null;
+  user: UserInfo;
   currentUser: User | null;
 }) {
   const [followerCount, setFollowerCount] = useState(user!.followerCount);
@@ -19,15 +20,16 @@ export default function UserProfile({
   };
 
   return (
-    <div className="w-full flex gap-5 items-center justify-between">
-      <div className="flex gap-5 items-center">
-        <div className="bg-black rounded-full w-16 h-16 md:w-40 md:h-40 shrink-0"></div>
-        <article className="flex flex-col">
+    <div className="w-full flex gap-5 items-center justify-between max-md:flex-col">
+      <div className="flex gap-5 items-center max-md:flex-col">
+        <div className="bg-black rounded-full w-42 h-42 shrink-0"></div>
+        <article className="flex flex-col max-md:items-center">
           <p className="text-2xl md:text-3xl font-medium">{user!.username}</p>
-          <div className="flex flex-wrap">
-            <span>{followerCount} followers</span>
+          <div className="flex">
+            <Link href={`/users/${user.id}/followers`}>{followerCount} followers</Link>
+
             <Dot />
-            <span>{user!.followingCount} following</span>
+            <Link href={`/users/${user.id}/following`}>{user!.followingCount} following</Link>
           </div>
         </article>
       </div>

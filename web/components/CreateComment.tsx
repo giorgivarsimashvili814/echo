@@ -53,7 +53,7 @@ export default function CreateComment({
     };
 
     queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
-      { queryKey: ["comments", postId, parentId ?? null].filter(Boolean) },
+      { queryKey: ["comments", postId, parentId || null] },
       (old) => {
         if (!old) return old;
         return {
@@ -67,48 +67,44 @@ export default function CreateComment({
       },
     );
 
-    if (!parentId) {
-      queryClient.setQueriesData<InfiniteData<PostsResponse>>(
-        { queryKey: ["posts"] },
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            pages: old.pages.map((page) => ({
-              ...page,
-              posts: page.posts.map((p) =>
-                p.id === postId
-                  ? { ...p, commentCount: p.commentCount + 1 }
-                  : p,
-              ),
-            })),
-          };
-        },
-      );
-    } else {
-      queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
-        { queryKey: ["comments", postId] },
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            pages: old.pages.map((page) => ({
-              ...page,
-              comments: page.comments.map((c) =>
-                c.id === parentId ? { ...c, replyCount: c.replyCount + 1 } : c,
-              ),
-            })),
-          };
-        },
-      );
-    }
+    queryClient.setQueriesData<InfiniteData<PostsResponse>>(
+      { queryKey: ["posts"] },
+      (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            posts: page.posts.map((p) =>
+              p.id === postId ? { ...p, commentCount: p.commentCount + 1 } : p,
+            ),
+          })),
+        };
+      },
+    );
+
+    queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
+      { queryKey: ["comments", postId] },
+      (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            comments: page.comments.map((c) =>
+              c.id === parentId ? { ...c, replyCount: c.replyCount + 1 } : c,
+            ),
+          })),
+        };
+      },
+    );
 
     reset();
 
     try {
       const newComment = await createComment(data.content, postId, parentId);
       queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
-        { queryKey: ["comments", postId, parentId ?? null].filter(Boolean) },
+        { queryKey: ["comments", postId, parentId || null] },
         (old) => {
           if (!old) return old;
           return {
@@ -128,7 +124,7 @@ export default function CreateComment({
       );
     } catch {
       queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
-        { queryKey: ["comments", postId, parentId ?? null].filter(Boolean) },
+        { queryKey: ["comments", postId, parentId || null] },
         (old) => {
           if (!old) return old;
           return {

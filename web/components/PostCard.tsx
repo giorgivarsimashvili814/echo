@@ -17,7 +17,7 @@ export function PostCard({ post }: { post: Post }) {
   const [toggleComments, setToggleComments] = useState(false);
 
   return (
-    <div className="rounded-lg p-2 flex flex-col gap-2 bg-white shadow w-full">
+    <div className="rounded-lg p-3 flex flex-col gap-2 bg-white shadow w-full">
       <Link
         href={`/users/${post.author.id}`}
         className="flex gap-2 items-center"
