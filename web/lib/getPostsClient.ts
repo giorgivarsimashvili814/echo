@@ -11,6 +11,7 @@ export async function getPostsClient(
   const res = await fetch(url.toString(), {
     credentials: "include",
   });
+  console.log({client: url})
 
   if (!res.ok) throw new Error("Failed to fetch posts");
   return res.json();
