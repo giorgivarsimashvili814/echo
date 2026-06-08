@@ -21,6 +21,7 @@ export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
   @UseGuards(AuthGuard)
+  @SkipThrottle({ short: true })
   @Post()
   create(
     @CurrentUser() user: SessionUser,

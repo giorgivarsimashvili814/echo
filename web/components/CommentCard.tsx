@@ -87,58 +87,74 @@ export default function CommentCard({
     }
   }
 
-async function handleDelete() {
-  queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
-    { queryKey: ["comments", postId] },
-    (old) => {
-      if (!old) return old;
+  async function handleDelete() {
+    const deletedIds = new Set<string>();
 
-      const deletedIds = new Set<string>();
-      old.pages.forEach((page) => {
+    const commentsData = queryClient.getQueriesData<
+      InfiniteData<CommentsResponse>
+    >({ queryKey: ["comments", postId] });
+    commentsData?.forEach(([, data]) => {
+      data?.pages.forEach((page) => {
         page.comments.forEach((c) => {
           if (c.id === comment.id || c.parentId === comment.id) {
             deletedIds.add(c.id);
           }
         });
       });
-      const deletedCount = deletedIds.size;
+    });
 
-      queryClient.setQueriesData<InfiniteData<PostsResponse>>(
-        { queryKey: ["posts"] },
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            pages: old.pages.map((page) => ({
-              ...page,
-              posts: page.posts.map((p) =>
-                p.id === postId
-                  ? { ...p, commentCount: p.commentCount - deletedCount }
-                  : p,
-              ),
-            })),
-          };
-        },
-      );
+    const repliesData = queryClient.getQueriesData<
+      InfiniteData<CommentsResponse>
+    >({ queryKey: ["comments", comment.id] });
+    repliesData?.forEach(([, data]) => {
+      data?.pages.forEach((page) => {
+        page.comments.forEach((c) => deletedIds.add(c.id));
+      });
+    });
 
-      return {
-        ...old,
-        pages: old.pages.map((page) => ({
-          ...page,
-          comments: page.comments.filter((c) => !deletedIds.has(c.id)),
-        })),
-      };
-    },
-  );
+    const deletedCount =
+      deletedIds.size > 0 ? deletedIds.size : (comment.replyCount || 0) + 1;
 
-  try {
-    await deleteComment(comment.id);
-  } catch {
-    queryClient.invalidateQueries({ queryKey: ["comments", postId] });
-    queryClient.invalidateQueries({ queryKey: ["posts"] });
-    toast.error("Failed to delete comment");
+    queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
+      { queryKey: ["comments", postId] },
+      (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            comments: page.comments.filter((c) => !deletedIds.has(c.id)),
+          })),
+        };
+      },
+    );
+
+    queryClient.setQueriesData<InfiniteData<PostsResponse>>(
+      { queryKey: ["posts"] },
+      (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            posts: page.posts.map((p) =>
+              p.id === postId
+                ? { ...p, commentCount: p.commentCount - deletedCount }
+                : p,
+            ),
+          })),
+        };
+      },
+    );
+
+    try {
+      await deleteComment(comment.id);
+    } catch {
+      queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      toast.error("Failed to delete comment");
+    }
   }
-}
 
   return (
     <div className="flex gap-1 w-full">
