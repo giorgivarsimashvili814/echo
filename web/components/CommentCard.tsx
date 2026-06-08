@@ -17,7 +17,6 @@ import { numberFormatter } from "./PostCard";
 import { CommentsResponse } from "@/types/comment";
 import { PostsResponse } from "@/types/post";
 
-
 const shortLocale: Pick<Locale, "formatDistance"> = {
   formatDistance: (token: FormatDistanceToken, count: number) => {
     const formatStrings: Partial<Record<FormatDistanceToken, string>> = {
@@ -40,7 +39,6 @@ const shortLocale: Pick<Locale, "formatDistance"> = {
     return formatStrings[token] || `${count}m`;
   },
 };
-
 
 export default function CommentCard({
   comment,
@@ -89,45 +87,58 @@ export default function CommentCard({
     }
   }
 
-  async function handleDelete() {
-    queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
-      { queryKey: ["comments", postId] },
-      (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          pages: old.pages.map((page) => ({
-            ...page,
-            comments: page.comments.filter((c) => c.id !== comment.id),
-          })),
-        };
-      },
-    );
+async function handleDelete() {
+  queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
+    { queryKey: ["comments", postId] },
+    (old) => {
+      if (!old) return old;
 
-    queryClient.setQueriesData<InfiniteData<PostsResponse>>(
-      { queryKey: ["posts"] },
-      (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          pages: old.pages.map((page) => ({
-            ...page,
-            posts: page.posts.map((p) =>
-              p.id === postId ? { ...p, commentCount: p.commentCount - 1 } : p,
-            ),
-          })),
-        };
-      },
-    );
-    
-    try {
-      await deleteComment(comment.id);
+      const deletedIds = new Set<string>();
+      old.pages.forEach((page) => {
+        page.comments.forEach((c) => {
+          if (c.id === comment.id || c.parentId === comment.id) {
+            deletedIds.add(c.id);
+          }
+        });
+      });
+      const deletedCount = deletedIds.size;
 
-    } catch {
-      queryClient.invalidateQueries({ queryKey: ["comments", postId] });
-      toast.error("Failed to delete comment");
-    }
+      queryClient.setQueriesData<InfiniteData<PostsResponse>>(
+        { queryKey: ["posts"] },
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              posts: page.posts.map((p) =>
+                p.id === postId
+                  ? { ...p, commentCount: p.commentCount - deletedCount }
+                  : p,
+              ),
+            })),
+          };
+        },
+      );
+
+      return {
+        ...old,
+        pages: old.pages.map((page) => ({
+          ...page,
+          comments: page.comments.filter((c) => !deletedIds.has(c.id)),
+        })),
+      };
+    },
+  );
+
+  try {
+    await deleteComment(comment.id);
+  } catch {
+    queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+    queryClient.invalidateQueries({ queryKey: ["posts"] });
+    toast.error("Failed to delete comment");
   }
+}
 
   return (
     <div className="flex gap-1 w-full">
@@ -157,7 +168,10 @@ export default function CommentCard({
           </div>
 
           {isEditing ? (
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2 mt-1">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="flex flex-col gap-2 mt-1"
+            >
               <textarea
                 className="text-sm w-full border rounded p-2 resize-none focus:outline-none bg-white"
                 rows={3}
@@ -188,7 +202,9 @@ export default function CommentCard({
 
         <div className="flex gap-2 items-center">
           <span className="text-xs text-gray-500" suppressHydrationWarning>
-            {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+            {formatDistanceToNow(new Date(comment.createdAt), {
+              addSuffix: true,
+            })}
           </span>
           <VoteButton
             upvotes={comment.upvotes}

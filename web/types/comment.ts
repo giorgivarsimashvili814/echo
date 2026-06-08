@@ -11,6 +11,7 @@ export interface Comment {
   userVote: VoteType;
   canEdit: boolean;
   canDelete: boolean;
+  parentId?:string
 }
 
 export interface CommentsResponse {
