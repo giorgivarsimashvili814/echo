@@ -78,7 +78,7 @@ export default function CreateComment({
           pages: old.pages.map((page) => ({
             ...page,
             posts: page.posts.map((p) =>
-              p.id === postId ? { ...p, commentCount: p.commentCount + 1 } : p,
+              p.id === postId && !parentId ? { ...p, commentCount: p.commentCount + 1 } : p,
             ),
           })),
         };

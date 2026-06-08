@@ -8,7 +8,7 @@ import QueryProvider from "@/components/QueryProvider";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Orit",
+  title: "Orbit",
   description: "Connect, share, and engage on Orbit. Post your thoughts, reply to threads, vote on top content, and follow your favorite creators in real time.",
 };
 
