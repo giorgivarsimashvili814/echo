@@ -35,6 +35,7 @@ export class CommentActionsController {
   }
 
   @UseGuards(AuthGuard)
+  @SkipThrottle({ short: true })
   @Patch(':commentId')
   update(
     @CurrentUser() user: SessionUser,
@@ -45,6 +46,7 @@ export class CommentActionsController {
   }
 
   @UseGuards(AuthGuard)
+  @SkipThrottle({ short: true })
   @Delete(':commentId')
   remove(
     @CurrentUser() user: SessionUser,

@@ -111,7 +111,7 @@ export class CommentService {
         downvotes: votes.filter((v) => v.type === VoteType.DOWNVOTE).length,
         userVote: votes.find((v) => v.userId === userId)?.type ?? null,
         canDelete: comment.author.id === userId,
-        canEdit:comment.author.id === userId
+        canEdit: comment.author.id === userId,
       })),
       nextCursor: hasNextPage ? data[data.length - 1].id : null,
     };
@@ -206,6 +206,8 @@ export class CommentService {
         upvotes: votes.filter((v) => v.type === VoteType.UPVOTE).length,
         downvotes: votes.filter((v) => v.type === VoteType.DOWNVOTE).length,
         userVote: votes.find((v) => v.userId === userId)?.type ?? null,
+        canDelete: reply.author.id === userId,
+        canEdit: reply.author.id === userId,
       })),
       nextCursor: hasNextPage ? data[data.length - 1].id : null,
     };
