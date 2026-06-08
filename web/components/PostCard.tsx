@@ -12,6 +12,7 @@ import { editPost } from "@/lib/editPost";
 import { InfiniteData, useQueryClient } from "@tanstack/react-query";
 import { deletePost } from "@/lib/deletePost";
 import { toast } from "sonner";
+import { Textarea } from "./ui/textarea";
 
 export const numberFormatter = new Intl.NumberFormat("en-US", {
   notation: "compact",
@@ -107,10 +108,10 @@ export function PostCard({ post }: { post: Post }) {
       </div>
 
       {isEditing ? (
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
-          <textarea
-            className="text-sm w-full border rounded p-2 resize-none focus:outline-none"
-            rows={4}
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2 mt-1">
+              <Textarea
+                className="resize-none bg-white"
+            rows={3}
             autoFocus
             {...register("content")}
           />

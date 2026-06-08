@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { numberFormatter } from "./PostCard";
 import { CommentsResponse } from "@/types/comment";
 import { PostsResponse } from "@/types/post";
+import { Textarea } from "./ui/textarea";
 
 const shortLocale: Pick<Locale, "formatDistance"> = {
   formatDistance: (token: FormatDistanceToken, count: number) => {
@@ -188,8 +189,8 @@ export default function CommentCard({
               onSubmit={handleSubmit(onSubmit)}
               className="flex flex-col gap-2 mt-1"
             >
-              <textarea
-                className="text-sm w-full border rounded p-2 resize-none focus:outline-none bg-white"
+              <Textarea
+                className="resize-none bg-white"
                 rows={3}
                 autoFocus
                 {...register("content")}
