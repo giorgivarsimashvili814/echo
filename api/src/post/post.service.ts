@@ -90,6 +90,8 @@ export class PostService {
         upvotes: votes.filter((v) => v.type === VoteType.UPVOTE).length,
         downvotes: votes.filter((v) => v.type === VoteType.DOWNVOTE).length,
         userVote: votes.find((v) => v.userId === userId)?.type ?? null,
+        canEdit: post.author.id === userId,
+        canDelete: post.author.id === userId
       })),
       nextCursor: hasNextPage ? data[data.length - 1].id : null,
     };

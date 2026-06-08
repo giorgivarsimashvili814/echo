@@ -9,7 +9,7 @@ export default async function Navbar() {
     <header className="border-b bg-white w-full top-0 sticky z-50">
       <nav className="px-4 h-14 flex items-center justify-between">
         <Link href="/" className="font-bold text-lg">
-          Echo
+          Orbit
         </Link>
 
         <div className="flex items-center gap-4">
@@ -18,12 +18,6 @@ export default async function Navbar() {
             className="text-sm text-muted-foreground hover:text-foreground"
           >
             Home
-          </Link>
-          <Link
-            href="/explore"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Explore
           </Link>
           {user ? (
             <>

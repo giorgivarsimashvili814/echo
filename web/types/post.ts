@@ -12,6 +12,8 @@ export interface Post {
   upvotes: number;
   downvotes: number;
   userVote: VoteType;
+  canEdit:boolean;
+  canDelete:boolean
 }
 
 export type VoteType = "UPVOTE" | "DOWNVOTE" | null;

@@ -1,13 +1,22 @@
-import { formatDistanceToNow, FormatDistanceToken, Locale } from "date-fns";
-import Link from "next/link";
 import { Comment } from "@/types/comment";
-import { Button } from "./ui/button";
+import { FormatDistanceToken, formatDistanceToNow, Locale } from "date-fns";
 import { MessageCircle } from "lucide-react";
-import { numberFormatter } from "./PostCard";
-import VoteButton from "./VoteButton";
+import Link from "next/link";
 import { useState } from "react";
+import { Button } from "./ui/button";
+import VoteButton from "./VoteButton";
 import ReplySection from "./ReplySection";
 import CreateComment from "./CreateComment";
+import CommentActions from "./CommentActions";
+import { useForm } from "react-hook-form";
+import { useQueryClient, InfiniteData } from "@tanstack/react-query";
+import { editComment } from "@/lib/editComment";
+import { deleteComment } from "@/lib/deleteComment";
+import { toast } from "sonner";
+import { numberFormatter } from "./PostCard";
+import { CommentsResponse } from "@/types/comment";
+import { PostsResponse } from "@/types/post";
+
 
 const shortLocale: Pick<Locale, "formatDistance"> = {
   formatDistance: (token: FormatDistanceToken, count: number) => {
@@ -32,6 +41,7 @@ const shortLocale: Pick<Locale, "formatDistance"> = {
   },
 };
 
+
 export default function CommentCard({
   comment,
   postId,
@@ -45,6 +55,79 @@ export default function CommentCard({
 }) {
   const [showReplies, setShowReplies] = useState(false);
   const [showReplyInput, setShowReplyInput] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [content, setContent] = useState(comment.content);
+
+  const queryClient = useQueryClient();
+
+  const { register, handleSubmit, reset } = useForm({
+    defaultValues: { content: comment.content },
+  });
+
+  async function onSubmit({ content: newContent }: { content: string }) {
+    setContent(newContent);
+    setIsEditing(false);
+    try {
+      await editComment(comment.id, newContent);
+      queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
+        { queryKey: ["comments", postId] },
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              comments: page.comments.map((c) =>
+                c.id === comment.id ? { ...c, content: newContent } : c,
+              ),
+            })),
+          };
+        },
+      );
+    } catch {
+      setContent(comment.content);
+    }
+  }
+
+  async function handleDelete() {
+    queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
+      { queryKey: ["comments", postId] },
+      (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            comments: page.comments.filter((c) => c.id !== comment.id),
+          })),
+        };
+      },
+    );
+
+    queryClient.setQueriesData<InfiniteData<PostsResponse>>(
+      { queryKey: ["posts"] },
+      (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            posts: page.posts.map((p) =>
+              p.id === postId ? { ...p, commentCount: p.commentCount - 1 } : p,
+            ),
+          })),
+        };
+      },
+    );
+    
+    try {
+      await deleteComment(comment.id);
+
+    } catch {
+      queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+      toast.error("Failed to delete comment");
+    }
+  }
 
   return (
     <div className="flex gap-1 w-full">
@@ -54,20 +137,58 @@ export default function CommentCard({
       ></Link>
       <div className="w-full">
         <div className="bg-gray-100 px-2 py-1 rounded-xl w-fit">
-          <Link
-            href={`/users/${comment.author.id}`}
-            className="font-medium text-sm"
-          >
-            {comment.author.username}
-          </Link>
-          <p>{comment.content}</p>
+          <div className="flex items-center justify-between gap-4">
+            <Link
+              href={`/users/${comment.author.id}`}
+              className="font-medium text-sm"
+            >
+              {comment.author.username}
+            </Link>
+            <CommentActions
+              canDelete={comment.canDelete}
+              canEdit={comment.canEdit}
+              isEditing={isEditing}
+              onEdit={() => {
+                reset({ content });
+                setIsEditing(true);
+              }}
+              onDelete={handleDelete}
+            />
+          </div>
+
+          {isEditing ? (
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2 mt-1">
+              <textarea
+                className="text-sm w-full border rounded p-2 resize-none focus:outline-none bg-white"
+                rows={3}
+                autoFocus
+                {...register("content")}
+              />
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  type="button"
+                  onClick={() => {
+                    reset();
+                    setIsEditing(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button size="sm" type="submit">
+                  Save
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <p>{content}</p>
+          )}
         </div>
 
         <div className="flex gap-2 items-center">
           <span className="text-xs text-gray-500" suppressHydrationWarning>
-            {formatDistanceToNow(new Date(comment.createdAt), {
-              locale: shortLocale,
-            })}
+            {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
           </span>
           <VoteButton
             upvotes={comment.upvotes}
@@ -88,7 +209,6 @@ export default function CommentCard({
             }}
           >
             {isReply ? <p>Reply</p> : <MessageCircle size={14} />}
-
             {!isReply && (
               <span className="text-sm font-medium">
                 {numberFormatter.format(comment.replyCount)}
@@ -96,6 +216,7 @@ export default function CommentCard({
             )}
           </Button>
         </div>
+
         {showReplies && !isReply && (
           <div className="ml-2">
             <ReplySection

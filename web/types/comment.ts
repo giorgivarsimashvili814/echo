@@ -9,6 +9,8 @@ export interface Comment {
   upvotes: number;
   downvotes: number;
   userVote: VoteType;
+  canEdit: boolean;
+  canDelete: boolean;
 }
 
 export interface CommentsResponse {

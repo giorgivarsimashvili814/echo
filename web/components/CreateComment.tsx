@@ -50,6 +50,8 @@ export default function CreateComment({
       userVote: null,
       replyCount: 0,
       author: { id: currentUser.id, username: currentUser.username },
+      canEdit: true,
+      canDelete: true,
     };
 
     queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
@@ -103,6 +105,7 @@ export default function CreateComment({
 
     try {
       const newComment = await createComment(data.content, postId, parentId);
+
       queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
         { queryKey: ["comments", postId, parentId || null] },
         (old) => {
@@ -114,7 +117,9 @@ export default function CreateComment({
                 ? {
                     ...page,
                     comments: page.comments.map((c) =>
-                      c.id === tempId ? newComment : c,
+                      c.id === tempId
+                        ? { ...newComment, canEdit: true, canDelete: true }
+                        : c,
                     ),
                   }
                 : page,

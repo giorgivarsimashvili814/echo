@@ -38,6 +38,8 @@ export default function CreatePost({ currentUser }: { currentUser: User }) {
         id: currentUser.id,
         username: currentUser.username,
       },
+      canEdit: true,
+      canDelete: true,
     };
 
     queryClient.setQueriesData<InfiniteData<PostsResponse>>(
@@ -71,7 +73,9 @@ export default function CreatePost({ currentUser }: { currentUser: User }) {
                 ? {
                     ...page,
                     posts: page.posts.map((p) =>
-                      p.id === tempId ? newPost : p,
+                      p.id === tempId
+                        ? { ...newPost, canEdit: true, canDelete: true }
+                        : p,
                     ),
                   }
                 : page,
