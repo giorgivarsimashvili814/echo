@@ -9,10 +9,14 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { VoteDto } from './dto/vote.dto';
 import { Prisma, VoteType } from 'generated/prisma/client';
+import { S3Service } from 'src/s3/s3.service';
 
 @Injectable()
 export class PostService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly s3Service: S3Service,
+  ) {}
 
   async create(userId: string, createPostDto: CreatePostDto) {
     const post = await this.prisma.post.create({
@@ -76,6 +80,13 @@ export class PostService {
             userId: true,
           },
         },
+        images: {
+          select: {
+            id: true,
+            url: true,
+          },
+          orderBy: { createdAt: 'asc' },
+        },
         _count: { select: { comments: true } },
       },
     });
@@ -91,7 +102,7 @@ export class PostService {
         downvotes: votes.filter((v) => v.type === VoteType.DOWNVOTE).length,
         userVote: votes.find((v) => v.userId === userId)?.type ?? null,
         canEdit: post.author.id === userId,
-        canDelete: post.author.id === userId
+        canDelete: post.author.id === userId,
       })),
       nextCursor: hasNextPage ? data[data.length - 1].id : null,
     };
@@ -157,20 +168,24 @@ export class PostService {
     return { post: updatedPost };
   }
 
-  async remove(userId: string, postId: string) {
-    const post = await this.prisma.post.findUnique({
-      where: { id: postId },
-      select: { authorId: true },
-    });
+async remove(userId: string, postId: string) {
+  const post = await this.prisma.post.findUnique({
+    where: { id: postId },
+    select: { authorId: true, images: { select: { url: true } } },
+  });
 
-    if (!post) throw new NotFoundException('Post not found');
-    if (post.authorId !== userId)
-      throw new ForbiddenException('Cannot remove post');
+  if (!post) throw new NotFoundException('Post not found');
+  if (post.authorId !== userId)
+    throw new ForbiddenException('Cannot remove post');
 
-    await this.prisma.post.delete({ where: { id: postId, authorId: userId } });
+  await this.prisma.post.delete({ where: { id: postId, authorId: userId } });
 
-    return { post: { id: postId } };
-  }
+  await Promise.allSettled(
+    post.images.map((img) => this.s3Service.deleteFile(img.url)),
+  );
+
+  return { post: { id: postId } };
+}
 
   async vote(userId: string, postId: string, voteDto: VoteDto) {
     try {
@@ -215,5 +230,31 @@ export class PostService {
       }
       throw new InternalServerErrorException('Something went wrong');
     }
+  }
+
+  async addImage(postId: string, file: Express.Multer.File) {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    const imageUrl = await this.s3Service.uploadFile(file);
+
+    const image = await this.prisma.postImage.create({
+      data: {
+        url: imageUrl,
+        postId,
+      },
+      select: {
+        id: true,
+        url: true,
+        createdAt: true,
+      },
+    });
+
+    return { image };
   }
 }

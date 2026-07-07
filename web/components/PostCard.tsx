@@ -13,6 +13,7 @@ import { InfiniteData, useQueryClient } from "@tanstack/react-query";
 import { deletePost } from "@/lib/deletePost";
 import { toast } from "sonner";
 import { Textarea } from "./ui/textarea";
+import ImageGrid from "./ImageGrid";
 
 export const numberFormatter = new Intl.NumberFormat("en-US", {
   notation: "compact",
@@ -108,9 +109,12 @@ export function PostCard({ post }: { post: Post }) {
       </div>
 
       {isEditing ? (
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2 mt-1">
-              <Textarea
-                className="resize-none bg-white"
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-2 mt-1"
+        >
+          <Textarea
+            className="resize-none bg-white"
             rows={3}
             autoFocus
             {...register("content")}
@@ -135,6 +139,8 @@ export function PostCard({ post }: { post: Post }) {
       ) : (
         <p className="text-sm line-clamp-5">{content}</p>
       )}
+
+      <ImageGrid images={post.images} />
 
       <div className="flex gap-5">
         <VoteButton

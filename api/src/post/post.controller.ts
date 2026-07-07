@@ -9,6 +9,9 @@ import {
   UseGuards,
   Query,
   Req,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -19,6 +22,7 @@ import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import type { RequestWithOptionalUser, SessionUser } from 'src/types';
 import { VoteDto } from './dto/vote.dto';
 import { OptionalAuthGuard } from 'src/guards/optional-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('posts')
 export class PostController {
@@ -87,4 +91,28 @@ export class PostController {
   ) {
     return this.postService.vote(user.id, postId, voteDto);
   }
+
+  @UseGuards(AuthGuard)
+@Post(':id/images')
+@UseInterceptors(FileInterceptor('file'))
+addImage(
+  @Param('id') id: string,
+  @UploadedFile() file: Express.Multer.File,
+) {
+  if (!file) {
+    throw new BadRequestException('No file provided');
+  }
+
+  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedMimeTypes.includes(file.mimetype)) {
+    throw new BadRequestException('Invalid file type');
+  }
+
+  const maxSizeBytes = 5 * 1024 * 1024;
+  if (file.size > maxSizeBytes) {
+    throw new BadRequestException('File too large (max 5MB)');
+  }
+
+  return this.postService.addImage(id, file);
+}
 }

@@ -12,6 +12,7 @@ export interface Post {
   upvotes: number;
   downvotes: number;
   userVote: VoteType;
+  images: { id: string; url: string }[];
   canEdit:boolean;
   canDelete:boolean
 }

@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider     = "prisma-client"
   output       = "../generated/prisma"
@@ -58,6 +53,7 @@ model Post {
 
   votes    PostVote[]
   comments Comment[]
+  images PostImage[]
 
   @@index([authorId])
   @@map("posts")
@@ -100,6 +96,7 @@ model Comment {
 
   replies Comment[]     @relation("CommentReplies")
   votes   CommentVote[]
+  images CommentImage[]
 
   @@index([postId])
   @@index([parentId])
@@ -132,4 +129,26 @@ model Follow {
 
   @@id([followerId, followingId])
   @@map("follows")
+}
+
+model PostImage {
+  id        String   @id @default(uuid())
+  url       String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+  @@map("post_images")
+}
+
+model CommentImage {
+  id        String   @id @default(uuid())
+  url       String
+  commentId String
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([commentId])
+  @@map("comment_images")
 }
