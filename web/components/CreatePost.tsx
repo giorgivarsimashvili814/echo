@@ -28,94 +28,118 @@ export default function CreatePost({ currentUser }: { currentUser: User }) {
 
   const queryClient = useQueryClient();
 
-const onSubmit = async (data: CreatePostForm) => {
-  const tempId = crypto.randomUUID();
+  const onSubmit = async (data: CreatePostForm) => {
+    const tempId = crypto.randomUUID();
 
-  const optimisticPost: Post = {
-    id: tempId,
-    content: data.content,
-    createdAt: new Date().toISOString(),
-    upvotes: 0,
-    downvotes: 0,
-    userVote: null,
-    commentCount: 0,
-    author: {
-      id: currentUser.id,
-      username: currentUser.username,
-    },
-    canEdit: true,
-    canDelete: true,
-    images: images.map((img) => ({
-      id: img.id,
-      url: img.previewUrl,
+    const optimisticPost: Post = {
+      id: tempId,
+      content: data.content,
       createdAt: new Date().toISOString(),
-    })),
+      upvotes: 0,
+      downvotes: 0,
+      userVote: null,
+      commentCount: 0,
+      author: {
+        id: currentUser.id,
+        username: currentUser.username,
+      },
+      canEdit: true,
+      canDelete: true,
+      images: images.map((img) => ({
+        id: img.id,
+        url: img.previewUrl,
+        createdAt: new Date().toISOString(),
+      })),
+    };
+
+    queryClient.setQueriesData<InfiniteData<PostsResponse>>(
+      { queryKey: ["posts"] },
+      (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page, index) =>
+            index === 0
+              ? { ...page, posts: [optimisticPost, ...page.posts] }
+              : page,
+          ),
+        };
+      },
+    );
+
+    reset();
+    const filesToUpload = images.map((img) => img.file);
+
+    try {
+      const newPost = await createPost(data.content);
+
+      queryClient.setQueriesData<InfiniteData<PostsResponse>>(
+        { queryKey: ["posts"] },
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              posts: page.posts.map((p) =>
+                p.id === tempId
+                  ? {
+                      ...newPost,
+                      images: optimisticPost.images,
+                      canEdit: true,
+                      canDelete: true,
+                    }
+                  : p,
+              ),
+            })),
+          };
+        },
+      );
+
+      reset();
+      setImages([]);
+
+      const uploadedImages = await Promise.all(
+        filesToUpload.map((file) => addImageToPost(newPost.id, file)),
+      );
+
+      queryClient.setQueriesData<InfiniteData<PostsResponse>>(
+        { queryKey: ["posts"] },
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              posts: page.posts.map((p) =>
+                p.id === newPost.id
+                  ? {
+                      ...p,
+                      images: uploadedImages,
+                    }
+                  : p,
+              ),
+            })),
+          };
+        },
+      );
+    } catch {
+      queryClient.setQueriesData<InfiniteData<PostsResponse>>(
+        { queryKey: ["posts"] },
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              posts: page.posts.filter((p) => p.id !== tempId),
+            })),
+          };
+        },
+      );
+      toast.error("Something went wrong");
+    }
   };
-
-  queryClient.setQueriesData<InfiniteData<PostsResponse>>(
-    { queryKey: ["posts"] },
-    (old) => {
-      if (!old) return old;
-      return {
-        ...old,
-        pages: old.pages.map((page, index) =>
-          index === 0 ? { ...page, posts: [optimisticPost, ...page.posts] } : page
-        ),
-      };
-    },
-  );
-
-  reset(); 
-  const filesToUpload = images.map((img) => img.file);
-
-  try {
-    const newPost = await createPost(data.content);
-
-    const uploadedImages = await Promise.all(
-      filesToUpload.map((file) => addImageToPost(newPost.id, file)),
-    );
-
-    queryClient.setQueriesData<InfiniteData<PostsResponse>>(
-      { queryKey: ["posts"] },
-      (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          pages: old.pages.map((page) => ({
-            ...page,
-            posts: page.posts.map((p) =>
-              p.id === tempId
-                ? {
-                    ...newPost,
-                    images: uploadedImages,
-                    canEdit: true,
-                    canDelete: true,
-                  }
-                : p,
-            ),
-          })),
-        };
-      },
-    );
-    setImages([]);
-
-  } catch {
-    queryClient.setQueriesData<InfiniteData<PostsResponse>>(
-      { queryKey: ["posts"] },
-      (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          pages: old.pages.map((page) => ({
-            ...page,
-            posts: page.posts.filter((p) => p.id !== tempId),
-          })),
-        };
-      },
-    );
-    toast.error("Something went wrong");
-  }
-};
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
