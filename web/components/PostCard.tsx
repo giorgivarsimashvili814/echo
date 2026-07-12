@@ -82,7 +82,7 @@ export function PostCard({ post }: { post: Post }) {
   }
 
   return (
-    <div className="rounded-lg p-3 flex flex-col gap-2 bg-white shadow w-full">
+    <div className="rounded-none sm:rounded-lg p-3 flex flex-col gap-2 bg-white shadow w-full">
       <div className="flex justify-between items-center">
         <Link
           href={`/users/${post.author.id}`}

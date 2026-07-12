@@ -138,7 +138,7 @@ export default function CommentCard({
 
   return (
     <div className="flex gap-1 w-full">
-      <Link href={`/users/${comment.author.id}`}>
+      <Link href={`/users/${comment.author.id}`} className="shrink-0">
         <Image
           src={comment.author.avatar?.url ?? defaultAvatar}
           alt={comment.author.username}

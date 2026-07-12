@@ -45,18 +45,17 @@ export default function UserProfile({
             </Link>
           </div>
         </article>
-        {isOwnProfile && (
+        {isOwnProfile ? (
         <Link
           href={`/users/${user.id}/me`}
           className="rounded-md border px-4 py-1.5 text-sm hover:bg-gray-50"
         >
           Edit 
         </Link>
-      )}
-      </div>
-      {currentUser?.id !== user!.id && (
+      ): (
         <FollowButton user={user!} onFollowChange={handleFollowChange} />
       )}
+      </div>
     </div>
   );
 }
