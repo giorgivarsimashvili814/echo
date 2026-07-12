@@ -88,6 +88,7 @@ export class CommentService {
           select: {
             id: true,
             username: true,
+            avatar: { select: { url: true } },
           },
         },
         votes: {
@@ -184,6 +185,7 @@ export class CommentService {
           select: {
             id: true,
             username: true,
+            avatar: { select: { url: true } },
           },
         },
         votes: {
