@@ -49,7 +49,7 @@ export default function CreateComment({
       downvotes: 0,
       userVote: null,
       replyCount: 0,
-      author: { id: currentUser.id, username: currentUser.username },
+      author: { id: currentUser.id, username: currentUser.username , avatar: currentUser.avatar},
       canEdit: true,
       canDelete: true,
     };
