@@ -15,6 +15,7 @@ export default function UserProfile({
   user: UserInfo;
   currentUser: User | null;
 }) {
+  const isOwnProfile = currentUser?.id === user.id;
   const [followerCount, setFollowerCount] = useState(user!.followerCount);
 
   const handleFollowChange = (viewerFollows: boolean) => {
@@ -22,8 +23,8 @@ export default function UserProfile({
   };
 
   return (
-    <div className="w-full flex gap-5 items-center justify-between max-md:flex-col">
-      <div className="flex gap-5 items-center max-md:flex-col">
+    <div className="w-full flex gap-5 justify-center max-md:flex-col">
+      <div className="flex gap-5 items-center justify-between max-md:flex-col">
         <Image
           src={user.avatar?.url ?? defaultAvatar}
           alt={user.username}
@@ -44,6 +45,14 @@ export default function UserProfile({
             </Link>
           </div>
         </article>
+        {isOwnProfile && (
+        <Link
+          href={`/users/${user.id}/me`}
+          className="rounded-md border px-4 py-1.5 text-sm hover:bg-gray-50"
+        >
+          Edit 
+        </Link>
+      )}
       </div>
       {currentUser?.id !== user!.id && (
         <FollowButton user={user!} onFollowChange={handleFollowChange} />
