@@ -72,6 +72,9 @@ export class PostService {
           select: {
             id: true,
             username: true,
+            avatar: {
+              select: {url:true}
+            },
           },
         },
         votes: {
@@ -168,24 +171,24 @@ export class PostService {
     return { post: updatedPost };
   }
 
-async remove(userId: string, postId: string) {
-  const post = await this.prisma.post.findUnique({
-    where: { id: postId },
-    select: { authorId: true, images: { select: { url: true } } },
-  });
+  async remove(userId: string, postId: string) {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+      select: { authorId: true, images: { select: { url: true } } },
+    });
 
-  if (!post) throw new NotFoundException('Post not found');
-  if (post.authorId !== userId)
-    throw new ForbiddenException('Cannot remove post');
+    if (!post) throw new NotFoundException('Post not found');
+    if (post.authorId !== userId)
+      throw new ForbiddenException('Cannot remove post');
 
-  await this.prisma.post.delete({ where: { id: postId, authorId: userId } });
+    await this.prisma.post.delete({ where: { id: postId, authorId: userId } });
 
-  await Promise.allSettled(
-    post.images.map((img) => this.s3Service.deleteFile(img.url)),
-  );
+    await Promise.allSettled(
+      post.images.map((img) => this.s3Service.deleteFile(img.url)),
+    );
 
-  return { post: { id: postId } };
-}
+    return { post: { id: postId } };
+  }
 
   async vote(userId: string, postId: string, voteDto: VoteDto) {
     try {

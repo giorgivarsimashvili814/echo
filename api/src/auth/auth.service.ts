@@ -96,6 +96,7 @@ export class AuthService {
             id: true,
             email: true,
             username: true,
+            avatar: { select: { url: true } },
           },
         },
       },

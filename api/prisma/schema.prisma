@@ -27,6 +27,8 @@ model User {
   followers Follow[] @relation("Following")
   following Follow[] @relation("Follower")
 
+  avatar UserAvatar?
+
   @@map("users")
 }
 
@@ -151,4 +153,14 @@ model CommentImage {
 
   @@index([commentId])
   @@map("comment_images")
+}
+
+model UserAvatar {
+  id        String   @id @default(uuid())
+  url       String
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("user_avatar")
 }

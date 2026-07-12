@@ -14,6 +14,8 @@ import { deletePost } from "@/lib/deletePost";
 import { toast } from "sonner";
 import { Textarea } from "./ui/textarea";
 import ImageGrid from "./ImageGrid";
+import Image from "next/image";
+import defaultAvatar from "@/public/default-avatar-3.svg";
 
 export const numberFormatter = new Intl.NumberFormat("en-US", {
   notation: "compact",
@@ -86,7 +88,13 @@ export function PostCard({ post }: { post: Post }) {
           href={`/users/${post.author.id}`}
           className="flex gap-2 items-center"
         >
-          <div className="bg-black h-10 w-10 rounded-full"></div>
+          <Image
+            src={post.author.avatar?.url ?? defaultAvatar}
+            alt={post.author.username}
+            width={40}
+            height={40}
+            className="h-10 w-10 rounded-full object-cover"
+          />
           <article className="flex flex-col">
             <p className="text-md font-medium">{post.author.username}</p>
             <span className="text-xs text-gray-500" suppressHydrationWarning>

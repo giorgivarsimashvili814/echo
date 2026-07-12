@@ -1,6 +1,7 @@
-export interface Author {
+interface Author {
   id: string;
   username: string;
+  avatar: { url: string } | null;
 }
 
 export interface Post {

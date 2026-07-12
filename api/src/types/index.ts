@@ -4,6 +4,7 @@ export interface SessionUser {
   id: string;
   email: string;
   username: string;
+  avatar:{url:string} | null
 }
 
 export type RequestWithOptionalUser = Request & { user?: SessionUser };

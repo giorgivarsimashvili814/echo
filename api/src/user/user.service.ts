@@ -1,13 +1,20 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import * as argon2 from 'argon2';
+import { S3Service } from 'src/s3/s3.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly s3: S3Service,
+  ) {}
 
   async follow(followerId: string, followingId: string) {
     if (followerId === followingId)
@@ -145,6 +152,7 @@ export class UserService {
       select: {
         id: true,
         username: true,
+        avatar: { select: { url: true } },
         _count: { select: { followers: true, following: true } },
         ...(requestingUserId &&
           requestingUserId !== userId && {
@@ -220,5 +228,88 @@ export class UserService {
       })),
       nextCursor: hasNextPage ? data[data.length - 1].id : null,
     };
+  }
+
+  async updateEmail(userId: string, newEmail: string) {
+    const existing = await this.prisma.user.findUnique({
+      where: { email: newEmail },
+    });
+    if (existing) throw new ConflictException('Email already in use');
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { email: newEmail },
+      select: { id: true, email: true },
+    });
+  }
+
+  async updateUsername(userId: string, username: string) {
+    const existing = await this.prisma.user.findUnique({ where: { username } });
+    if (existing && existing.id !== userId) {
+      throw new ConflictException('Username already taken');
+    }
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { username },
+      select: { id: true, username: true },
+    });
+  }
+
+  async updatePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const isValid = await argon2.verify(user.password, currentPassword);
+    if (!isValid)
+      throw new UnauthorizedException('Current password is incorrect');
+
+    const hashed = await argon2.hash(newPassword);
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashed },
+      select: { id: true },
+    });
+  }
+
+  async uploadAvatar(userId: string, file: Express.Multer.File) {
+    if (!file.mimetype.startsWith('image/')) {
+      throw new BadRequestException('File must be an image');
+    }
+
+    const maxSizeBytes = 5 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      throw new BadRequestException('Image must be under 5MB');
+    }
+
+    const existing = await this.prisma.userAvatar.findUnique({
+      where: { userId },
+    });
+
+    const url = await this.s3.uploadFile(file);
+
+    if (existing) {
+      await this.s3.deleteFile(existing.url).catch(() => null);
+    }
+
+    return this.prisma.userAvatar.upsert({
+      where: { userId },
+      update: { url },
+      create: { userId, url },
+    });
+  }
+
+  async removeAvatar(userId: string) {
+    const existing = await this.prisma.userAvatar.findUnique({
+      where: { userId },
+    });
+    if (!existing) return null;
+
+    await this.s3.deleteFile(existing.url).catch(() => null);
+    return this.prisma.userAvatar.delete({ where: { userId } });
   }
 }

@@ -2,6 +2,7 @@ export interface User {
   id: string;
   email: string;
   username: string;
+  avatar:{url:string} | null
 }
 
 export interface UserRelationship {
@@ -14,6 +15,7 @@ export interface UserRelationship {
 export interface UserInfo {
   id: string;
   username: string;
+  avatar: {url:string} | null
   followerCount: number;
   followingCount: number;
   viewerFollows: boolean;
