@@ -1,5 +1,5 @@
 import { Comment } from "@/types/comment";
-import { FormatDistanceToken, formatDistanceToNow, Locale } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -17,29 +17,8 @@ import { numberFormatter } from "./PostCard";
 import { CommentsResponse } from "@/types/comment";
 import { PostsResponse } from "@/types/post";
 import { Textarea } from "./ui/textarea";
-
-const shortLocale: Pick<Locale, "formatDistance"> = {
-  formatDistance: (token: FormatDistanceToken, count: number) => {
-    const formatStrings: Partial<Record<FormatDistanceToken, string>> = {
-      lessThanXSeconds: "now",
-      xSeconds: "now",
-      halfAMinute: "now",
-      lessThanXMinutes: `${count}m`,
-      xMinutes: `${count}m`,
-      aboutXHours: `${count}h`,
-      xHours: `${count}h`,
-      xDays: `${count}d`,
-      aboutXMonths: `${count}mo`,
-      xMonths: `${count}mo`,
-      aboutXYears: `${count}y`,
-      xYears: `${count}y`,
-      overXYears: `${count}y`,
-      almostXYears: `${count}y`,
-    };
-
-    return formatStrings[token] || `${count}m`;
-  },
-};
+import Image from "next/image";
+import defaultAvatar from "@/public/default-avatar-3.svg";
 
 export default function CommentCard({
   comment,
@@ -159,10 +138,15 @@ export default function CommentCard({
 
   return (
     <div className="flex gap-1 w-full">
-      <Link
-        href={`/users/${comment.author.id}`}
-        className="bg-black h-8 w-8 rounded-full shrink-0"
-      ></Link>
+      <Link href={`/users/${comment.author.id}`}>
+        <Image
+          src={comment.author.avatar?.url ?? defaultAvatar}
+          alt={comment.author.username}
+          width={32}
+          height={32}
+          className="h-8 w-8 rounded-full object-cover"
+        />
+      </Link>
       <div className="w-full">
         <div className="bg-gray-100 px-2 py-1 rounded-xl w-fit">
           <div className="flex items-center justify-between gap-4">
