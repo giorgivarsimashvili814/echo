@@ -42,6 +42,7 @@ export default function CreatePost({ currentUser }: { currentUser: User }) {
       author: {
         id: currentUser.id,
         username: currentUser.username,
+        avatar: currentUser.avatar
       },
       canEdit: true,
       canDelete: true,
