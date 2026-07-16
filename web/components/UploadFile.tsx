@@ -6,6 +6,8 @@ import Image from "next/image";
 export type PendingImage = {
   id: string;
   file: File;
+  height: number;
+  width: number;
   previewUrl: string;
 };
 
@@ -19,15 +21,45 @@ export default function UploadFile({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = (files: FileList) => {
-    const newImages = Array.from(files).map((file) => ({
-      id: crypto.randomUUID(),
-      file,
-      previewUrl: URL.createObjectURL(file),
-    }));
-    onChange([...images, ...newImages]);
+    const promises = Array.from(files).map((file) => {
+      return new Promise<PendingImage>((resolve, reject) => {
+        const img = new window.Image();
+        const objectUrl = URL.createObjectURL(file);
+
+        img.onload = () => {
+          resolve({
+            id: crypto.randomUUID(),
+            file,
+            height: img.height,
+            width: img.width,
+            previewUrl: objectUrl,
+          });
+        };
+
+        img.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error(`Failed to load image: ${file.name}`));
+        };
+
+        img.src = objectUrl;
+      });
+    });
+
+    Promise.allSettled(promises).then((results) => {
+      const newImages = results
+        .filter(
+          (r): r is PromiseFulfilledResult<PendingImage> =>
+            r.status === "fulfilled",
+        )
+        .map((r) => r.value);
+
+      onChange([...images, ...newImages]);
+    });
   };
 
   const removeImage = (id: string) => {
+    const img = images.find((img) => img.id === id);
+    if (img) URL.revokeObjectURL(img.previewUrl);
     onChange(images.filter((img) => img.id !== id));
   };
 
@@ -41,6 +73,7 @@ export default function UploadFile({
                 src={img.previewUrl}
                 alt=""
                 fill
+                unoptimized
                 className="object-cover rounded"
               />
               <button
@@ -58,7 +91,7 @@ export default function UploadFile({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="text-sm text-neutral-500 border border-dashed border-neutral-300 rounded-lg px-3 py-2 w-fit"
+        className="text-sm text-neutral-500 border border-dashed border-neutral-300 rounded-lg px-3 py-2 w-fit bg-white"
       >
         Add images
       </button>
@@ -68,7 +101,10 @@ export default function UploadFile({
         accept="image/*"
         multiple
         hidden
-        onChange={(e) => e.target.files && handleFiles(e.target.files)}
+        onChange={(e) => {
+          if (e.target.files) handleFiles(e.target.files);
+          e.target.value = "";
+        }}
       />
     </div>
   );

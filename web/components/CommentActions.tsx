@@ -7,7 +7,7 @@ export default function CommentActions({
   canDelete,
   onEdit,
   isEditing,
-  onDelete
+  onDelete,
 }: {
   canEdit: boolean;
   canDelete: boolean;
@@ -30,6 +30,7 @@ export default function CommentActions({
       }}
     >
       <Button
+        aria-label="More options"
         variant="ghost"
         className="rounded-full hover:bg-gray-200"
         size="icon"

@@ -55,7 +55,7 @@ model Post {
 
   votes    PostVote[]
   comments Comment[]
-  images PostImage[]
+  images   PostImage[]
 
   @@index([authorId])
   @@map("posts")
@@ -96,9 +96,9 @@ model Comment {
   parentId String?
   parent   Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
 
-  replies Comment[]     @relation("CommentReplies")
+  replies Comment[]      @relation("CommentReplies")
   votes   CommentVote[]
-  images CommentImage[]
+  images  CommentImage[]
 
   @@index([postId])
   @@index([parentId])
@@ -137,6 +137,8 @@ model PostImage {
   id        String   @id @default(uuid())
   url       String
   postId    String
+  height    Int
+  width     Int
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 

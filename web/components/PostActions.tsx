@@ -7,7 +7,7 @@ export default function PostActions({
   canDelete,
   onEdit,
   isEditing,
-  onDelete
+  onDelete,
 }: {
   canEdit: boolean;
   canDelete: boolean;
@@ -30,6 +30,7 @@ export default function PostActions({
       }}
     >
       <Button
+        aria-label="More options"
         variant="ghost"
         className="rounded-full"
         size="icon"

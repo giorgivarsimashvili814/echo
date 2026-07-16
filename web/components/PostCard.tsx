@@ -82,8 +82,8 @@ export function PostCard({ post }: { post: Post }) {
   }
 
   return (
-    <div className="rounded-none sm:rounded-lg p-3 flex flex-col gap-2 bg-white shadow w-full">
-      <div className="flex justify-between items-center">
+    <div className="rounded-md py-3 flex flex-col gap-2 bg-white shadow w-full">
+      <div className="flex justify-between items-center px-3">
         <Link
           href={`/users/${post.author.id}`}
           className="flex gap-2 items-center"
@@ -145,12 +145,12 @@ export function PostCard({ post }: { post: Post }) {
           </div>
         </form>
       ) : (
-        <p className="text-sm line-clamp-5">{content}</p>
+        <p className="text-sm line-clamp-5 ml-3">{content}</p>
       )}
 
       <ImageGrid images={post.images} />
 
-      <div className="flex gap-5">
+      <div className="flex gap-5 px-3">
         <VoteButton
           upvotes={post.upvotes}
           downvotes={post.downvotes}

@@ -49,6 +49,8 @@ export default function CreatePost({ currentUser }: { currentUser: User }) {
       images: images.map((img) => ({
         id: img.id,
         url: img.previewUrl,
+        height: img.height,
+        width: img.width,
         createdAt: new Date().toISOString(),
       })),
     };
@@ -143,7 +145,7 @@ export default function CreatePost({ currentUser }: { currentUser: User }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2 px-3 sm:px-0">
       <Textarea
         className="bg-white"
         placeholder="What's on your mind?"

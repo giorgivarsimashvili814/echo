@@ -34,7 +34,7 @@ export default function CommentSection({
   const comments = data?.pages.flatMap((page) => page.comments) ?? [];
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full px-3">
       <div className="max-h-80 overflow-y-auto w-full built-in-scrollbar">
         {isPending && commentCount > 0 ? (
           <>

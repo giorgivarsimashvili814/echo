@@ -13,7 +13,7 @@ export interface Post {
   upvotes: number;
   downvotes: number;
   userVote: VoteType;
-  images: { id: string; url: string }[];
+  images: { id: string; url: string, height:number, width:number }[];
   canEdit:boolean;
   canDelete:boolean
 }

@@ -13,7 +13,6 @@ export async function getPosts(
   const res = await fetch(url.toString(), {
     headers: { cookie: cookieStore.toString() },
   });
-  console.log({ server: url });
 
   if (!res.ok) throw new Error("Failed to fetch posts");
   return res.json();

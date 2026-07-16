@@ -10,6 +10,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { VoteDto } from './dto/vote.dto';
 import { Prisma, VoteType } from 'generated/prisma/client';
 import { S3Service } from 'src/s3/s3.service';
+import { imageSize } from 'image-size';
 
 @Injectable()
 export class PostService {
@@ -32,6 +33,7 @@ export class PostService {
           select: {
             id: true,
             username: true,
+            avatar:true
           },
         },
       },
@@ -73,7 +75,7 @@ export class PostService {
             id: true,
             username: true,
             avatar: {
-              select: {url:true}
+              select: { url: true },
             },
           },
         },
@@ -87,6 +89,8 @@ export class PostService {
           select: {
             id: true,
             url: true,
+            height:true,
+            width:true
           },
           orderBy: { createdAt: 'asc' },
         },
@@ -236,6 +240,11 @@ export class PostService {
   }
 
   async addImage(postId: string, file: Express.Multer.File) {
+    const dimensions = imageSize(file.buffer);
+
+    const width = dimensions.width;
+    const height = dimensions.height;
+
     const post = await this.prisma.post.findUnique({
       where: { id: postId },
     });
@@ -250,10 +259,14 @@ export class PostService {
       data: {
         url: imageUrl,
         postId,
+        height,
+        width,
       },
       select: {
         id: true,
         url: true,
+        height: true,
+        width: true,
         createdAt: true,
       },
     });
