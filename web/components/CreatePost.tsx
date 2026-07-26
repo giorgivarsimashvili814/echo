@@ -145,7 +145,7 @@ export default function CreatePost({ currentUser }: { currentUser: User }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2 px-3 sm:px-0">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
       <Textarea
         className="bg-white"
         placeholder="What's on your mind?"

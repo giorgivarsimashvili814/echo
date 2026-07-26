@@ -31,3 +31,8 @@ export interface FollowingResponse {
   following: UserRelationship[];
   nextCursor: string | null;
 }
+
+export interface FindAllUsersResponse {
+  users: User[];
+  nextCursor: string | null;
+}

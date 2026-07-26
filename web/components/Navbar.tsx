@@ -1,6 +1,7 @@
 import Link from "next/link";
 import LogoutButton from "./LogoutButton";
 import { getCurrentUser } from "@/lib/getCurrentUser";
+import SearchBar from "./SearchBar";
 
 export default async function Navbar() {
   const user = await getCurrentUser();
@@ -8,9 +9,12 @@ export default async function Navbar() {
   return (
     <header className="border-b bg-white w-full top-0 sticky z-50">
       <nav className="px-4 h-14 flex items-center justify-between">
-        <Link href="/" className="font-bold text-lg">
-          Orbit
-        </Link>
+        <div className="flex gap-2 items-center">
+          <Link href="/" className="font-bold text-lg">
+            Orbit
+          </Link>
+          <SearchBar />
+        </div>
 
         <div className="flex items-center gap-4">
           <Link

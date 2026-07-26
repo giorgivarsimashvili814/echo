@@ -81,7 +81,7 @@ export class UserController {
     return this.userService.findAll(
       search,
       cursor,
-      Math.min(parseInt(take ?? '20') || 20, 50),
+      Math.min(parseInt(take ?? '5') || 20, 50),
       req.user?.id,
     );
   }

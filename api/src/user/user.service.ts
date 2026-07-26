@@ -186,7 +186,7 @@ export class UserService {
   async findAll(
     search?: string,
     cursor?: string,
-    take = 20,
+    take = 5,
     requestingUserId?: string,
   ) {
     const users = await this.prisma.user.findMany({
@@ -204,6 +204,11 @@ export class UserService {
       select: {
         id: true,
         username: true,
+        avatar: {
+          select: {
+            url: true,
+          },
+        },
         ...(requestingUserId && {
           followers: {
             where: { followerId: requestingUserId },
